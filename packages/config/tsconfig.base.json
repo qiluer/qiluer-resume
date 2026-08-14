@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "declaration": true, // 生成 .d.ts 文件
+    "sourceMap": true,
+    "experimentalDecorators": true, // 必须：支持 class-validator
+    "emitDecoratorMetadata": true, // 必须：支持 class-transformer
+    "strictPropertyInitialization": false,
+    "paths": {
+      "@qiluer-resume/dto": ["../../packages/dto/src/index.ts"],
+      "@qiluer-resume/database": ["../../packages/database/index.ts"]
+    }
+  }
+}

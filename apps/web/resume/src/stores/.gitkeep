@@ -1,0 +1,1 @@
+// 此目录用于存放全局（非业务）的 zustand stores（如 theme、locale、sidebar 等）

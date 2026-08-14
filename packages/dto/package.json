@@ -1,0 +1,59 @@
+{
+  "name": "@qiluer-resume/dto",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas/index.d.ts",
+      "default": "./dist/schemas/index.js"
+    },
+    "./dtos": {
+      "types": "./dist/dtos/index.d.ts",
+      "default": "./dist/dtos/index.js"
+    },
+    "./error": {
+      "types": "./dist/modules/error/index.d.ts",
+      "default": "./dist/modules/error/index.js"
+    },
+    "./error/*": {
+      "types": "./dist/modules/error/*.d.ts",
+      "default": "./dist/modules/error/*.js"
+    },
+    "./schemas/*": {
+      "types": "./dist/modules/*/schemas.d.ts",
+      "default": "./dist/modules/*/schemas.js"
+    },
+    "./dtos/*": {
+      "types": "./dist/modules/*/dtos.d.ts",
+      "default": "./dist/modules/*/dtos.js"
+    },
+    "./vos/*": {
+      "types": "./dist/modules/*/vos.d.ts",
+      "default": "./dist/modules/*/vos.js"
+    },
+    "./modules/*": {
+      "types": "./dist/modules/*/index.d.ts",
+      "default": "./dist/modules/*/index.js"
+    }
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "nestjs-zod": "^5.2.1"
+  }
+}
