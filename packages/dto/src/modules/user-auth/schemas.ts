@@ -3,15 +3,11 @@ import { z } from 'zod';
 /** Better Auth 邮箱密码认证所使用的密码规则。 */
 export const userAuthPasswordSchema = z.string().min(8, '密码至少需要 8 位').max(128, '密码最多允许 128 位');
 
-/** 由受信任前端传入的绝对回调地址。 */
-export const userAuthCallbackUrlSchema = z.url('回调地址必须是有效的绝对 URL');
-
 /** 普通用户注册请求。 */
 export const registerUserAuthSchema = z.object({
   name: z.string().trim().min(1, '姓名不能为空'),
   email: z.email('邮箱格式不正确'),
   password: userAuthPasswordSchema,
-  callbackURL: userAuthCallbackUrlSchema,
 });
 
 /** 普通用户邮箱密码登录请求。 */
@@ -19,35 +15,26 @@ export const loginUserAuthSchema = z.object({
   email: z.email('邮箱格式不正确'),
   password: userAuthPasswordSchema,
   rememberMe: z.boolean().optional(),
-  callbackURL: userAuthCallbackUrlSchema,
 });
 
 /** 重新发送验证邮件请求。 */
 export const sendVerificationEmailUserAuthSchema = z.object({
   email: z.email('邮箱格式不正确'),
-  callbackURL: userAuthCallbackUrlSchema,
 });
 
 /** 验证邮箱业务回调查询参数。 */
 export const verifyEmailUserAuthQuerySchema = z.object({
   token: z.string().min(1, '验证令牌不能为空'),
-  callbackURL: userAuthCallbackUrlSchema,
 });
 
 /** 忘记密码邮件请求。 */
 export const forgotPasswordUserAuthSchema = z.object({
   email: z.email('邮箱格式不正确'),
-  redirectTo: userAuthCallbackUrlSchema,
 });
 
 /** 密码重置业务回调路径参数。 */
 export const resetPasswordCallbackUserAuthParamsSchema = z.object({
   token: z.string().min(1, '重置令牌不能为空'),
-});
-
-/** 密码重置业务回调查询参数。 */
-export const resetPasswordCallbackUserAuthQuerySchema = z.object({
-  callbackURL: userAuthCallbackUrlSchema,
 });
 
 /** 使用邮件令牌设置新密码的请求。 */
@@ -128,8 +115,6 @@ export type VerifyEmailUserAuthQueryType = z.infer<typeof verifyEmailUserAuthQue
 export type ForgotPasswordUserAuthType = z.infer<typeof forgotPasswordUserAuthSchema>;
 /** 密码重置回调路径参数类型。 */
 export type ResetPasswordCallbackUserAuthParamsType = z.infer<typeof resetPasswordCallbackUserAuthParamsSchema>;
-/** 密码重置回调查询参数类型。 */
-export type ResetPasswordCallbackUserAuthQueryType = z.infer<typeof resetPasswordCallbackUserAuthQuerySchema>;
 /** 设置新密码输入类型。 */
 export type ResetPasswordUserAuthType = z.infer<typeof resetPasswordUserAuthSchema>;
 

@@ -27,6 +27,7 @@ describe('User authentication (e2e)', () => {
   const password = 'InitialPassword123!';
   const newPassword = 'UpdatedPassword123!';
   const webOrigin = 'http://localhost:8080';
+  const userAuthCallbackURL = `${webOrigin}/auth/callback`;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule], controllers: [ProtectedTestController] })
@@ -81,14 +82,14 @@ describe('User authentication (e2e)', () => {
     expect(Object.keys(openApiDocument.paths).some((path) => path.startsWith('/api/auth'))).toBe(false);
   });
 
-  it('protects account discovery and validates callback origins and tokens', async () => {
+  it('protects account discovery and uses fixed callback URLs for invalid tokens', async () => {
     const unknownEmail = `unknown-${Date.now()}@example.com`;
 
     await request(app.getHttpServer())
       .post('/api/user-auth/send-verification-email')
       .set('Origin', webOrigin)
       .set('X-Forwarded-For', '127.0.0.20')
-      .send({ email: unknownEmail, callbackURL: `${webOrigin}/verify-email` })
+      .send({ email: unknownEmail })
       .expect(200)
       .expect({ code: 200, message: 'success', data: { success: true } });
 
@@ -96,7 +97,7 @@ describe('User authentication (e2e)', () => {
       .post('/api/user-auth/forgot-password')
       .set('Origin', webOrigin)
       .set('X-Forwarded-For', '127.0.0.21')
-      .send({ email: unknownEmail, redirectTo: `${webOrigin}/reset-password` })
+      .send({ email: unknownEmail })
       .expect(200)
       .expect({ code: 200, message: 'success', data: { success: true } });
 
@@ -106,21 +107,22 @@ describe('User authentication (e2e)', () => {
       .set('X-Forwarded-For', '127.0.0.22')
       .send({ email: unknownEmail, callbackURL: 'https://untrusted.example.com/verify-email' })
       .expect(200)
-      .expect(({ body }) => {
-        expect(body.code).toBe(10001);
-      });
+      .expect({ code: 200, message: 'success', data: { success: true } });
 
     const invalidVerification = await request(app.getHttpServer())
       .get('/api/user-auth/verify-email')
-      .query({ token: 'invalid-verification-token', callbackURL: `${webOrigin}/verify-email` })
+      .query({ token: 'invalid-verification-token', callbackURL: 'https://untrusted.example.com/verify-email' })
       .expect(302);
-    expect(new URL(invalidVerification.headers.location).searchParams.get('error')).toBe('INVALID_TOKEN');
+    const invalidVerificationLocation = new URL(invalidVerification.headers.location);
+    expect(`${invalidVerificationLocation.origin}${invalidVerificationLocation.pathname}`).toBe(userAuthCallbackURL);
+    expect(invalidVerificationLocation.searchParams.get('flow')).toBe('verify-email');
+    expect(invalidVerificationLocation.searchParams.get('error')).toBe('INVALID_TOKEN');
 
-    const invalidReset = await request(app.getHttpServer())
-      .get('/api/user-auth/reset-password/invalid-reset-token')
-      .query({ callbackURL: `${webOrigin}/reset-password` })
-      .expect(302);
-    expect(new URL(invalidReset.headers.location).searchParams.get('error')).toBe('INVALID_TOKEN');
+    const invalidReset = await request(app.getHttpServer()).get('/api/user-auth/reset-password/invalid-reset-token').expect(302);
+    const invalidResetLocation = new URL(invalidReset.headers.location);
+    expect(`${invalidResetLocation.origin}${invalidResetLocation.pathname}`).toBe(userAuthCallbackURL);
+    expect(invalidResetLocation.searchParams.get('flow')).toBe('reset-password');
+    expect(invalidResetLocation.searchParams.get('error')).toBe('INVALID_TOKEN');
   });
 
   it('registers, verifies, signs in, resets the password, and signs out', async () => {
@@ -129,7 +131,7 @@ describe('User authentication (e2e)', () => {
     const signUpResponse = await agent
       .post('/api/user-auth/register')
       .set('Origin', webOrigin)
-      .send({ name: 'Better Auth User', email, password, callbackURL: `${webOrigin}/verify-email` })
+      .send({ name: 'Better Auth User', email, password, callbackURL: 'https://untrusted.example.com/verify-email' })
       .expect(200);
 
     expect(signUpResponse.body).toMatchObject({ code: 200, message: 'success', data: { email, emailVerified: false } });
@@ -141,7 +143,7 @@ describe('User authentication (e2e)', () => {
       .post('/api/user-auth/register')
       .set('Origin', webOrigin)
       .set('X-Forwarded-For', '127.0.0.9')
-      .send({ name: 'Better Auth User', email, password, callbackURL: `${webOrigin}/verify-email` })
+      .send({ name: 'Better Auth User', email, password })
       .expect(200);
     expect(duplicateSignUpResponse.body).toEqual({ code: 30003, message: '邮箱已被注册', data: {} });
 
@@ -149,7 +151,7 @@ describe('User authentication (e2e)', () => {
       .post('/api/user-auth/login')
       .set('Origin', webOrigin)
       .set('X-Forwarded-For', '127.0.0.10')
-      .send({ email, password, callbackURL: `${webOrigin}/verify-email` })
+      .send({ email, password })
       .expect(200)
       .expect(({ body }) => {
         expect(body.code).toBe(30006);
@@ -159,13 +161,18 @@ describe('User authentication (e2e)', () => {
     expect(verificationUrl).toBeDefined();
     const verificationRequestUrl = new URL(verificationUrl!);
     expect(verificationRequestUrl.pathname).toBe('/api/user-auth/verify-email');
-    await agent.get(`${verificationRequestUrl.pathname}${verificationRequestUrl.search}`).expect(302);
+    expect(verificationRequestUrl.searchParams.get('callbackURL')).toBe(`${userAuthCallbackURL}?flow=verify-email`);
+    const verificationCallbackResponse = await agent.get(`${verificationRequestUrl.pathname}${verificationRequestUrl.search}`).expect(302);
+    const verificationCallbackLocation = new URL(verificationCallbackResponse.headers.location);
+    expect(`${verificationCallbackLocation.origin}${verificationCallbackLocation.pathname}`).toBe(userAuthCallbackURL);
+    expect(verificationCallbackLocation.searchParams.get('flow')).toBe('verify-email');
+    expect(verificationCallbackLocation.searchParams.has('error')).toBe(false);
 
     const signInResponse = await agent
       .post('/api/user-auth/login')
       .set('Origin', webOrigin)
       .set('X-Forwarded-For', '127.0.0.11')
-      .send({ email, password, callbackURL: `${webOrigin}/verify-email` })
+      .send({ email, password })
       .expect(200);
     expect(signInResponse.headers['set-cookie']).toBeDefined();
     expect(signInResponse.body).toMatchObject({ code: 200, message: 'success', data: { email, emailVerified: true } });
@@ -179,19 +186,19 @@ describe('User authentication (e2e)', () => {
         expect(body.data.session).not.toHaveProperty('token');
       });
 
-    await agent
-      .post('/api/user-auth/forgot-password')
-      .set('Origin', webOrigin)
-      .send({ email, redirectTo: `${webOrigin}/reset-password` })
-      .expect(200);
+    await agent.post('/api/user-auth/forgot-password').set('Origin', webOrigin).send({ email }).expect(200);
 
     const resetEmail = sentEmails.find((message) => message.subject.includes('重置'));
     const resetUrl = resetEmail?.html.match(/href="([^"]+)"/)?.[1].replaceAll('&amp;', '&');
     expect(resetUrl).toBeDefined();
     const resetCallbackUrl = new URL(resetUrl!);
     expect(resetCallbackUrl.pathname).toMatch(/^\/api\/user-auth\/reset-password\//);
+    expect(resetCallbackUrl.searchParams.get('callbackURL')).toBe(`${userAuthCallbackURL}?flow=reset-password`);
     const resetCallbackResponse = await agent.get(`${resetCallbackUrl.pathname}${resetCallbackUrl.search}`).expect(302);
-    const resetToken = new URL(resetCallbackResponse.headers.location).searchParams.get('token');
+    const resetCallbackLocation = new URL(resetCallbackResponse.headers.location);
+    expect(`${resetCallbackLocation.origin}${resetCallbackLocation.pathname}`).toBe(userAuthCallbackURL);
+    expect(resetCallbackLocation.searchParams.get('flow')).toBe('reset-password');
+    const resetToken = resetCallbackLocation.searchParams.get('token');
     expect(resetToken).toBeTruthy();
 
     await agent.post('/api/user-auth/reset-password').set('Origin', webOrigin).send({ newPassword, token: resetToken }).expect(200);
@@ -207,7 +214,7 @@ describe('User authentication (e2e)', () => {
       .post('/api/user-auth/login')
       .set('Origin', webOrigin)
       .set('X-Forwarded-For', '127.0.0.13')
-      .send({ email, password, callbackURL: `${webOrigin}/verify-email` })
+      .send({ email, password })
       .expect(200)
       .expect(({ body }) => {
         expect(body.code).toBe(30007);
@@ -217,7 +224,7 @@ describe('User authentication (e2e)', () => {
       .post('/api/user-auth/login')
       .set('Origin', webOrigin)
       .set('X-Forwarded-For', '127.0.0.12')
-      .send({ email, password: newPassword, callbackURL: `${webOrigin}/verify-email` })
+      .send({ email, password: newPassword })
       .expect(200);
 
     const signOutResponse = await agent.post('/api/user-auth/logout').set('Origin', webOrigin).expect(200);

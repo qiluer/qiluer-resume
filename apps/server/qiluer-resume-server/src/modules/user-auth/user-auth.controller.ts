@@ -7,7 +7,6 @@ import {
   LoginUserAuthDto,
   RegisterUserAuthDto,
   ResetPasswordCallbackUserAuthParamsDto,
-  ResetPasswordCallbackUserAuthQueryDto,
   ResetPasswordUserAuthDto,
   SendVerificationEmailUserAuthDto,
   VerifyEmailUserAuthQueryDto,
@@ -99,7 +98,7 @@ export class UserAuthController {
 
   @AllowAnonymous()
   @ApiOperation({ summary: 'C端用户验证邮箱', description: '验证后重定向到可信前端地址' })
-  @ApiFoundResponse({ description: '验证完成，或携带错误参数重定向到前端 callbackURL' })
+  @ApiFoundResponse({ description: '验证完成，或携带错误参数重定向到服务端配置的前端回调页' })
   @Get('verify-email')
   async verifyEmail(@Query() query: VerifyEmailUserAuthQueryDto, @Req() request: Request, @Res() response: Response): Promise<void> {
     const upstream = await this.userAuthService.verifyEmail(query, request.headers);
@@ -123,15 +122,14 @@ export class UserAuthController {
   @AllowAnonymous()
   @ApiOperation({ summary: 'C端用户重置密码校验', description: '校验密码重置令牌并重定向到可信前端地址' })
   @ApiParam({ name: 'token', description: '一次性密码重置令牌' })
-  @ApiFoundResponse({ description: '令牌有效时附加 token，失效时附加 error，并重定向到前端 callbackURL' })
+  @ApiFoundResponse({ description: '令牌有效时附加 token，失效时附加 error，并重定向到服务端配置的前端回调页' })
   @Get('reset-password/:token')
   async resetPasswordCallback(
     @Param() params: ResetPasswordCallbackUserAuthParamsDto,
-    @Query() query: ResetPasswordCallbackUserAuthQueryDto,
     @Req() request: Request,
     @Res() response: Response,
   ): Promise<void> {
-    const upstream = await this.userAuthService.resetPasswordCallback(params, query, request.headers);
+    const upstream = await this.userAuthService.resetPasswordCallback(params, request.headers);
     forwardRedirect(upstream, response);
   }
 

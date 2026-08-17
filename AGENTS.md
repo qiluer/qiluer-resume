@@ -32,10 +32,6 @@
 
 Prettier 强制使用两个空格缩进、单引号、分号、尾随逗号，并将单行长度限制为 150 个字符；其 Tailwind 插件会对工具类进行排序。ESLint 覆盖 TypeScript、NestJS、React Hooks 和 Vite 热更新规则。React 组件和类使用 `PascalCase`，函数和变量使用 `camelCase`，文件名使用 kebab-case 并附加职责后缀，例如 `user.service.ts`、`auth.store.ts` 和 `app.e2e-spec.ts`。请勿手动编辑 `src/routeTree.gen.ts` 或 Prisma 生成的文件。
 
-## 测试指南
-
-服务端使用 Jest 和 Supertest。单元测试应以 `*.spec.ts` 命名并与源文件放在同一目录；集成测试应放在 `test/` 下并以 `*.e2e-spec.ts` 命名。新增控制器、服务、验证和错误处理行为时，应补充相应测试。使用 `test:cov` 查看测试覆盖率；当前未强制要求具体的覆盖率数值。Web 应用尚未配置测试运行器，因此请使用 `pnpm --filter resume lint` 和 `pnpm --filter resume lint:typecheck` 进行代码检查和类型检查。
-
 ## 提交与拉取请求指南
 
-当前检出内容中无法获取 Git 历史。提交信息应简洁并使用祈使语气，建议遵循 Conventional Commits 规范（例如 `feat(auth): add captcha verification`）。每个提交应只聚焦于一项变更。拉取请求应说明变更内容和已执行的验证，关联相关 Issue，标明 Schema 或环境配置变更，并为可见的 UI 更新附上截图。切勿提交 `.env`、凭据或生产数据。
+提交信息应简洁并使用祈使语气，建议遵循 Conventional Commits 规范（例如 `feat(auth): add captcha verification`）。每个提交应只聚焦于一项变更。拉取请求应说明变更内容和已执行的验证，关联相关 Issue，标明 Schema 或环境配置变更，并为可见的 UI 更新附上截图。切勿提交 `.env`、凭据或生产数据。

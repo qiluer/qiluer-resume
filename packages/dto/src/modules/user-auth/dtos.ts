@@ -4,7 +4,6 @@ import {
   loginUserAuthSchema,
   registerUserAuthSchema,
   resetPasswordCallbackUserAuthParamsSchema,
-  resetPasswordCallbackUserAuthQuerySchema,
   resetPasswordUserAuthSchema,
   sendVerificationEmailUserAuthSchema,
   verifyEmailUserAuthQuerySchema,
@@ -27,9 +26,6 @@ export class ForgotPasswordUserAuthDto extends createZodDto(forgotPasswordUserAu
 
 /** 密码重置业务回调路径参数 DTO。 */
 export class ResetPasswordCallbackUserAuthParamsDto extends createZodDto(resetPasswordCallbackUserAuthParamsSchema) {}
-
-/** 密码重置业务回调查询 DTO。 */
-export class ResetPasswordCallbackUserAuthQueryDto extends createZodDto(resetPasswordCallbackUserAuthQuerySchema) {}
 
 /** 设置新密码 DTO。 */
 export class ResetPasswordUserAuthDto extends createZodDto(resetPasswordUserAuthSchema) {}

@@ -60,3 +60,9 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 .env
 .turbo
 # docs/*
+
+# compiled output
+**/dist/
+**/build/
+**/coverage/
+**/.turbo/

@@ -10,7 +10,6 @@ import {
   type LoginUserAuthType,
   type RegisterUserAuthType,
   type ResetPasswordCallbackUserAuthParamsType,
-  type ResetPasswordCallbackUserAuthQueryType,
   type ResetPasswordUserAuthType,
   type SendVerificationEmailUserAuthType,
   type UserAuthActionType,
@@ -51,6 +50,9 @@ interface BetterAuthSessionLike {
   userAgent?: string | null;
 }
 
+/** 前端统一认证回调页需要处理的业务流程。 */
+type UserAuthCallbackFlow = 'verify-email' | 'reset-password';
+
 /**
  * 普通用户认证业务服务。
  *
@@ -59,25 +61,47 @@ interface BetterAuthSessionLike {
  */
 @Injectable()
 export class UserAuthService {
-  /** 允许接收认证回调的前端 Origin 列表。 */
-  private readonly trustedOrigins: string[];
+  /** 由服务端配置并验证过的前端统一认证回调地址。 */
+  private readonly callbackURL: URL;
 
   constructor(
     private readonly authService: NestBetterAuthService<UserAuth>,
     configService: ConfigService,
   ) {
-    this.trustedOrigins = (configService.get<string>('BETTER_AUTH_TRUSTED_ORIGINS') ?? '')
+    const callbackURLValue = configService.get<string>('USER_AUTH_CALLBACK_URL')?.trim();
+    if (!callbackURLValue) throw new Error('USER_AUTH_CALLBACK_URL is not defined in the root .env file');
+
+    let callbackURL: URL;
+    try {
+      callbackURL = new URL(callbackURLValue);
+    } catch {
+      throw new Error('USER_AUTH_CALLBACK_URL must be a valid absolute URL');
+    }
+    if (callbackURL.protocol !== 'http:' && callbackURL.protocol !== 'https:') {
+      throw new Error('USER_AUTH_CALLBACK_URL must use the http or https protocol');
+    }
+
+    const trustedOrigins = (configService.get<string>('BETTER_AUTH_TRUSTED_ORIGINS') ?? '')
       .split(',')
       .map((origin) => origin.trim())
       .filter(Boolean);
+    const trusted = trustedOrigins.some((trustedOrigin) => {
+      try {
+        return new URL(trustedOrigin).origin === callbackURL.origin;
+      } catch {
+        return false;
+      }
+    });
+    if (!trusted) throw new Error('USER_AUTH_CALLBACK_URL origin must be included in BETTER_AUTH_TRUSTED_ORIGINS');
+
+    this.callbackURL = callbackURL;
   }
 
   /** 注册普通用户并触发邮箱验证邮件。 */
   async register(body: RegisterUserAuthType, requestHeaders: IncomingHttpHeaders): Promise<UserAuthServiceResult<UserAuthUserType>> {
-    this.assertTrustedCallback(body.callbackURL);
     return this.execute(async () => {
       const result = await this.authService.api.signUpEmail({
-        body,
+        body: { ...body, callbackURL: this.createCallbackURL('verify-email') },
         headers: fromNodeHeaders(requestHeaders),
         returnHeaders: true,
       });
@@ -87,10 +111,9 @@ export class UserAuthService {
 
   /** 使用邮箱和密码登录，并返回待写入浏览器的 Session Cookie。 */
   async login(body: LoginUserAuthType, requestHeaders: IncomingHttpHeaders): Promise<UserAuthServiceResult<UserAuthUserType>> {
-    this.assertTrustedCallback(body.callbackURL);
     return this.execute(async () => {
       const result = await this.authService.api.signInEmail({
-        body,
+        body: { ...body, callbackURL: this.createCallbackURL('verify-email') },
         headers: fromNodeHeaders(requestHeaders),
         returnHeaders: true,
       });
@@ -134,10 +157,9 @@ export class UserAuthService {
     body: SendVerificationEmailUserAuthType,
     requestHeaders: IncomingHttpHeaders,
   ): Promise<UserAuthServiceResult<UserAuthActionType>> {
-    this.assertTrustedCallback(body.callbackURL);
     return this.execute(async () => {
       const result = await this.authService.api.sendVerificationEmail({
-        body,
+        body: { ...body, callbackURL: this.createCallbackURL('verify-email') },
         headers: fromNodeHeaders(requestHeaders),
         returnHeaders: true,
       });
@@ -147,9 +169,8 @@ export class UserAuthService {
 
   /** 验证邮箱令牌，并返回需要原样转发给浏览器的 302 Response。 */
   async verifyEmail(query: VerifyEmailUserAuthQueryType, requestHeaders: IncomingHttpHeaders): Promise<globalThis.Response> {
-    this.assertTrustedCallback(query.callbackURL);
     return this.authService.api.verifyEmail({
-      query,
+      query: { ...query, callbackURL: this.createCallbackURL('verify-email') },
       headers: fromNodeHeaders(requestHeaders),
       asResponse: true,
     });
@@ -157,10 +178,9 @@ export class UserAuthService {
 
   /** 请求密码重置邮件；无论邮箱是否存在都返回相同结果。 */
   async forgotPassword(body: ForgotPasswordUserAuthType, requestHeaders: IncomingHttpHeaders): Promise<UserAuthServiceResult<UserAuthActionType>> {
-    this.assertTrustedCallback(body.redirectTo);
     return this.execute(async () => {
       const result = await this.authService.api.requestPasswordReset({
-        body,
+        body: { ...body, redirectTo: this.createCallbackURL('reset-password') },
         headers: fromNodeHeaders(requestHeaders),
         returnHeaders: true,
       });
@@ -169,15 +189,10 @@ export class UserAuthService {
   }
 
   /** 校验密码重置令牌，并返回需要原样转发给浏览器的 302 Response。 */
-  async resetPasswordCallback(
-    params: ResetPasswordCallbackUserAuthParamsType,
-    query: ResetPasswordCallbackUserAuthQueryType,
-    requestHeaders: IncomingHttpHeaders,
-  ): Promise<globalThis.Response> {
-    this.assertTrustedCallback(query.callbackURL);
+  async resetPasswordCallback(params: ResetPasswordCallbackUserAuthParamsType, requestHeaders: IncomingHttpHeaders): Promise<globalThis.Response> {
     return this.authService.api.requestPasswordResetCallback({
       params,
-      query,
+      query: { callbackURL: this.createCallbackURL('reset-password') },
       headers: fromNodeHeaders(requestHeaders),
       asResponse: true,
     });
@@ -215,17 +230,11 @@ export class UserAuthService {
     }
   }
 
-  /** 根据根环境变量中的 trusted origins 校验前端回调地址，防止开放重定向。 */
-  private assertTrustedCallback(callbackURL: string): void {
-    const callbackOrigin = new URL(callbackURL).origin;
-    const trusted = this.trustedOrigins.some((trustedOrigin) => {
-      try {
-        return new URL(trustedOrigin).origin === callbackOrigin;
-      } catch {
-        return false;
-      }
-    });
-    if (!trusted) throw new BusinessException(ErrorCodeEnum.参数校验失败, '回调地址不在受信任 Origin 列表中');
+  /** 基于服务端固定地址生成带流程标识的前端认证回调 URL。 */
+  private createCallbackURL(flow: UserAuthCallbackFlow): string {
+    const callbackURL = new URL(this.callbackURL);
+    callbackURL.searchParams.set('flow', flow);
+    return callbackURL.toString();
   }
 
   /** 把 Better Auth 用户对象转换为稳定、无令牌的公开 VO。 */
