@@ -4,6 +4,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "incremental": true,
+    "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
     "isolatedModules": true,
     "removeComments": true,
     "forceConsistentCasingInFileNames": true,
