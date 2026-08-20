@@ -1,6 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Response } from 'express';
-import { RespondDataVO } from '@qiluer-resume/dto/dtos/respond';
+import type { RespondDataType } from '@qiluer-resume/dto/schemas/respond';
 import { ErrorCodeEnum } from '@qiluer-resume/dto';
 import { BusinessException } from '@/common/errors/business.exception';
 import { ERROR_CODE_MESSAGE_MAP } from '../enums/error-code-message';
@@ -51,7 +51,7 @@ export class AllExceptionFilter implements ExceptionFilter {
     }
 
     response.statusCode = HttpStatus.OK;
-    const body: RespondDataVO = { code: customCode, message, data: {} };
+    const body: RespondDataType<Record<string, never>> = { code: customCode, message, data: {} };
     response.json(body);
   }
 }

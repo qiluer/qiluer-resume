@@ -15,38 +15,47 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
       "default": "./dist/index.js"
     },
     "./schemas": {
       "types": "./dist/schemas/index.d.ts",
+      "development": "./src/schemas/index.ts",
       "default": "./dist/schemas/index.js"
     },
     "./dtos": {
       "types": "./dist/dtos/index.d.ts",
+      "development": "./src/dtos/index.ts",
       "default": "./dist/dtos/index.js"
     },
     "./error": {
       "types": "./dist/modules/error/index.d.ts",
+      "development": "./src/modules/error/index.ts",
       "default": "./dist/modules/error/index.js"
     },
     "./error/*": {
       "types": "./dist/modules/error/*.d.ts",
+      "development": "./src/modules/error/*.ts",
       "default": "./dist/modules/error/*.js"
     },
     "./schemas/*": {
       "types": "./dist/modules/*/schemas.d.ts",
+      "development": "./src/modules/*/schemas.ts",
       "default": "./dist/modules/*/schemas.js"
     },
     "./dtos/*": {
       "types": "./dist/modules/*/dtos.d.ts",
+      "development": "./src/modules/*/dtos.ts",
       "default": "./dist/modules/*/dtos.js"
     },
     "./vos/*": {
       "types": "./dist/modules/*/vos.d.ts",
+      "development": "./src/modules/*/vos.ts",
       "default": "./dist/modules/*/vos.js"
     },
     "./modules/*": {
       "types": "./dist/modules/*/index.d.ts",
+      "development": "./src/modules/*/index.ts",
       "default": "./dist/modules/*/index.js"
     }
   },

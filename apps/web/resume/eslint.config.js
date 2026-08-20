@@ -15,4 +15,11 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // TanStack Router 文件路由必须同时导出 Route，并可在同文件声明页面组件。
+    files: ['src/routes/**/*.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ]);

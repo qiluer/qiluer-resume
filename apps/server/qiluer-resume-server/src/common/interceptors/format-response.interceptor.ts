@@ -2,20 +2,20 @@ import { CallHandler, ExecutionContext, HttpStatus, Injectable, NestInterceptor 
 import { Response } from 'express';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { RespondDataVO } from '@qiluer-resume/dto/dtos/respond';
+import { SUCCESS_CODE, type RespondDataType } from '@qiluer-resume/dto/schemas/respond';
 
 /**成功响应格式 */
 @Injectable()
 export class FormatResponseInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<RespondDataVO> {
+  intercept<TData>(context: ExecutionContext, next: CallHandler<TData>): Observable<RespondDataType<TData>> {
     const response = context.switchToHttp().getResponse<Response>();
     response.statusCode = HttpStatus.OK;
     return next.handle().pipe(
       map((data) => {
-        const res: RespondDataVO = {
-          code: 200,
+        const res: RespondDataType<TData> = {
+          code: SUCCESS_CODE,
           message: 'success',
-          data: data,
+          data,
         };
         return res;
       }),

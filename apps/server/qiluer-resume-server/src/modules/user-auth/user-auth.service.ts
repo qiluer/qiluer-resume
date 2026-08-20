@@ -243,10 +243,7 @@ export class UserAuthService {
       id: user.id,
       name: user.name,
       email: user.email,
-      emailVerified: user.emailVerified,
-      image: user.image ?? null,
-      createdAt: user.createdAt.toISOString(),
-      updatedAt: user.updatedAt.toISOString(),
+      image: user.image ?? '',
     };
   }
 
@@ -255,11 +252,8 @@ export class UserAuthService {
     return {
       id: session.id,
       userId: session.userId,
-      expiresAt: session.expiresAt.toISOString(),
-      createdAt: session.createdAt.toISOString(),
-      updatedAt: session.updatedAt.toISOString(),
-      ipAddress: session.ipAddress ?? null,
-      userAgent: session.userAgent ?? null,
+      ipAddress: session.ipAddress ?? '',
+      userAgent: session.userAgent ?? '',
     };
   }
 }

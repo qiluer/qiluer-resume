@@ -59,13 +59,14 @@ describe('User authentication (e2e)', () => {
     expect(app.get(RedisService)).toBeInstanceOf(RedisService);
 
     await request(app.getHttpServer())
-      .get('/api')
+      .get('/api/health-check')
       .expect(200)
       .expect(({ body }) => {
-        expect(body).toEqual({ code: 200, message: 'success', data: 'Hello World!' });
+        expect(body).toMatchObject({ code: 0, message: 'success' });
+        expect(body.data).toMatch(/^服务正常运行: \d{4}-\d{2}-\d{2}T/);
       });
 
-    await request(app.getHttpServer()).get('/api/user-auth/session').expect(200).expect({ code: 200, message: 'success', data: null });
+    await request(app.getHttpServer()).get('/api/user-auth/session').expect(200).expect({ code: 0, message: 'success', data: null });
 
     await request(app.getHttpServer())
       .get('/api/protected-test')
@@ -91,7 +92,7 @@ describe('User authentication (e2e)', () => {
       .set('X-Forwarded-For', '127.0.0.20')
       .send({ email: unknownEmail })
       .expect(200)
-      .expect({ code: 200, message: 'success', data: { success: true } });
+      .expect({ code: 0, message: 'success', data: { success: true } });
 
     await request(app.getHttpServer())
       .post('/api/user-auth/forgot-password')
@@ -99,7 +100,7 @@ describe('User authentication (e2e)', () => {
       .set('X-Forwarded-For', '127.0.0.21')
       .send({ email: unknownEmail })
       .expect(200)
-      .expect({ code: 200, message: 'success', data: { success: true } });
+      .expect({ code: 0, message: 'success', data: { success: true } });
 
     await request(app.getHttpServer())
       .post('/api/user-auth/send-verification-email')
@@ -107,7 +108,7 @@ describe('User authentication (e2e)', () => {
       .set('X-Forwarded-For', '127.0.0.22')
       .send({ email: unknownEmail, callbackURL: 'https://untrusted.example.com/verify-email' })
       .expect(200)
-      .expect({ code: 200, message: 'success', data: { success: true } });
+      .expect({ code: 0, message: 'success', data: { success: true } });
 
     const invalidVerification = await request(app.getHttpServer())
       .get('/api/user-auth/verify-email')
@@ -134,7 +135,7 @@ describe('User authentication (e2e)', () => {
       .send({ name: 'Better Auth User', email, password, callbackURL: 'https://untrusted.example.com/verify-email' })
       .expect(200);
 
-    expect(signUpResponse.body).toMatchObject({ code: 200, message: 'success', data: { email, emailVerified: false } });
+    expect(signUpResponse.body).toMatchObject({ code: 0, message: 'success', data: { email } });
     expect(signUpResponse.body).not.toHaveProperty('data.token');
     const verificationEmail = sentEmails.find((message) => message.subject.includes('验证'));
     expect(verificationEmail?.to).toBe(email);
@@ -175,7 +176,7 @@ describe('User authentication (e2e)', () => {
       .send({ email, password })
       .expect(200);
     expect(signInResponse.headers['set-cookie']).toBeDefined();
-    expect(signInResponse.body).toMatchObject({ code: 200, message: 'success', data: { email, emailVerified: true } });
+    expect(signInResponse.body).toMatchObject({ code: 0, message: 'success', data: { email } });
     expect(signInResponse.body).not.toHaveProperty('data.token');
 
     await agent

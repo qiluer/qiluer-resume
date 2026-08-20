@@ -1,0 +1,38 @@
+{
+  "name": "@qiluer-resume/api-client",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./user": {
+      "types": "./dist/modules/user/index.d.ts",
+      "development": "./src/modules/user/index.ts",
+      "default": "./dist/modules/user/index.js"
+    },
+    "./admin": {
+      "types": "./dist/modules/admin/index.d.ts",
+      "development": "./src/modules/admin/index.ts",
+      "default": "./dist/modules/admin/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "pnpm build && vitest run test/*.test.mjs"
+  },
+  "dependencies": {
+    "@qiluer-resume/dto": "workspace:*",
+    "axios": "^1.7.9",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.11"
+  }
+}

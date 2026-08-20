@@ -12,7 +12,7 @@ import {
   VerifyEmailUserAuthQueryDto,
 } from '@qiluer-resume/dto/dtos/user-auth';
 import { LoginUserAuthVO, RegisterUserAuthVO, SessionUserAuthVO, UserAuthActionVO } from '@qiluer-resume/dto/vos/user-auth';
-import type { UserAuthActionType, UserAuthSessionType, UserAuthUserType } from '@qiluer-resume/dto/schemas/user-auth';
+import { type UserAuthActionType, type UserAuthSessionType, type UserAuthUserType } from '@qiluer-resume/dto/schemas/user-auth';
 import { UserAuthService } from './user-auth.service';
 
 /** 把 Better Auth 产生的 Set-Cookie 原样写入 NestJS 响应。 */

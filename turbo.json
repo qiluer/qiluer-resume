@@ -2,7 +2,11 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "db:generate"],
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "generated/prisma/**"]
+    },
+    "@qiluer-resume/database#build": {
+      "dependsOn": ["db:generate", "^build"],
       "outputs": ["dist/**", "generated/prisma/**"]
     },
     "db:generate": {
@@ -15,7 +19,12 @@
       "cache": false
     },
     "dev": {
-      "dependsOn": ["^build", "^db:generate"],
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "@qiluer-resume/database#dev": {
+      "dependsOn": ["db:generate", "^build"],
       "cache": false,
       "persistent": true
     },

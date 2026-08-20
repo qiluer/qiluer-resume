@@ -1,10 +1,18 @@
 import { redirect, createFileRoute } from '@tanstack/react-router';
-import { redirectIfAuthed } from '@features/auth';
+import { queryClient } from '@lib/query/client';
+import { sessionOptions } from '@features/auth';
+import { ApiErrorKind, normalizeApiError } from '@qiluer-resume/api-client';
 
 export const Route = createFileRoute('/')({
-  beforeLoad: () => {
-    // 已登录直接进首页；未登录走 AuthGuard 由 /home 抛出到 /login
-    redirectIfAuthed();
-    throw redirect({ to: '/home' });
+  beforeLoad: async () => {
+    try {
+      const session = await queryClient.ensureQueryData(sessionOptions());
+      throw redirect({ to: session ? '/home' : '/login' });
+    } catch (error) {
+      const apiError = normalizeApiError(error);
+      if (([ApiErrorKind.Network, ApiErrorKind.Timeout, ApiErrorKind.Server] as ApiErrorKind[]).includes(apiError.kind)) {
+        throw redirect({ to: '/login' });
+      }
+    }
   },
 });

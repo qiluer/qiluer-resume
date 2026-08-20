@@ -1,4 +1,5 @@
 import { createRouter } from '@tanstack/react-router';
+import { AppErrorPage } from '@components/app-error-page';
 import { routeTree } from '../routeTree.gen';
 
 /**
@@ -9,6 +10,7 @@ import { routeTree } from '../routeTree.gen';
  */
 export const router = createRouter({
   routeTree,
+  defaultErrorComponent: AppErrorPage,
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,

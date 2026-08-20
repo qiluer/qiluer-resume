@@ -2,9 +2,9 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { LoginForm, redirectIfAuthed } from '@features/auth';
 
 export const Route = createFileRoute('/login')({
-  beforeLoad: () => {
+  beforeLoad: async () => {
     // 已登录用户访问 /login 时自动跳到 /home
-    redirectIfAuthed();
+    await redirectIfAuthed();
   },
   component: LoginPage,
 });
