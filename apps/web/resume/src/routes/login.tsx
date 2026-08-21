@@ -3,7 +3,6 @@ import { LoginForm, redirectIfAuthed } from '@features/auth';
 
 export const Route = createFileRoute('/login')({
   beforeLoad: async () => {
-    // 已登录用户访问 /login 时自动跳到 /home
     await redirectIfAuthed();
   },
   component: LoginPage,

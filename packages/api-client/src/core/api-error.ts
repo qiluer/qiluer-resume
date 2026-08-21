@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { respondDataSchema } from '@qiluer-resume/dto/schemas/respond';
+import { ErrorCodeEnum } from '@qiluer-resume/dto/error';
 
 /** API 错误的分类常量。 */
 export const ApiErrorKind = {
@@ -41,7 +42,7 @@ export class ApiError extends Error {
   /** 错误分类。 */
   readonly kind: ApiErrorKind;
   /** 服务端返回的业务错误码。 */
-  readonly code?: number;
+  readonly code?: ErrorCodeEnum;
   /** 用于诊断错误的附加数据。 */
   readonly details?: unknown;
   /** HTTP 响应状态码。 */

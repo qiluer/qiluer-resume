@@ -6,7 +6,6 @@ export const userAuthPasswordSchema = z.string().min(8, '密码至少需要 8 �
 
 /** 普通用户注册请求。 */
 export const registerUserAuthSchema = z.object({
-  name: z.string().trim().min(1, '姓名不能为空').meta({ description: '用户姓名' }),
   email: z.email('邮箱格式不正确').meta({ description: '用户邮箱' }),
   password: userAuthPasswordSchema,
 });

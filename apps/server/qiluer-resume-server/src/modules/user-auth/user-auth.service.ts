@@ -101,7 +101,7 @@ export class UserAuthService {
   async register(body: RegisterUserAuthType, requestHeaders: IncomingHttpHeaders): Promise<UserAuthServiceResult<UserAuthUserType>> {
     return this.execute(async () => {
       const result = await this.authService.api.signUpEmail({
-        body: { ...body, callbackURL: this.createCallbackURL('verify-email') },
+        body: { ...body, name: body.email, callbackURL: this.createCallbackURL('verify-email') },
         headers: fromNodeHeaders(requestHeaders),
         returnHeaders: true,
       });
@@ -234,6 +234,7 @@ export class UserAuthService {
   private createCallbackURL(flow: UserAuthCallbackFlow): string {
     const callbackURL = new URL(this.callbackURL);
     callbackURL.searchParams.set('flow', flow);
+    if (flow === 'verify-email') callbackURL.searchParams.set('state', 'success');
     return callbackURL.toString();
   }
 

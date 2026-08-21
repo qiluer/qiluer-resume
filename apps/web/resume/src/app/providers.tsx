@@ -4,6 +4,8 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { router } from '@app/router';
+import { GlobalErrorDialog } from '@components/global/global-error-dialog';
+import { Toaster } from '@components/ui/toast';
 import { queryClient } from '@lib/query/client';
 
 interface ProvidersProps {
@@ -19,6 +21,8 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       {children ?? <RouterProvider router={router} />}
+      <GlobalErrorDialog />
+      <Toaster />
       {import.meta.env.DEV && (
         <>
           <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
