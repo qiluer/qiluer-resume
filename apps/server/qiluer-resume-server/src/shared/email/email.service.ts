@@ -57,8 +57,9 @@ export class EmailService implements OnModuleInit {
       this.logger.log('✅ Email transporter verified successfully');
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      // 邮件属于辅助能力，校验失败不阻塞应用启动，由调用方在首次发送时再发现真实错误
       this.logger.error(`❌ Email transporter verify failed: ${message}`);
+      // 抛出错误，阻塞应用启动
+      throw error;
     }
   }
 

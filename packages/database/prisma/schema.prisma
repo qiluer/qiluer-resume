@@ -10,33 +10,83 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider     = "postgresql"
+  relationMode = "prisma"
 }
 
+/// 模板状态
+enum TemplateStatus {
+  /// 上架
+  ACTIVE
+  /// 下架
+  INACTIVE
+}
+
+/// 简历模块类型
+enum ResumeSectionType {
+  /// 个人信息
+  PERSONAL_INFO
+  /// 摘要
+  SUMMARY
+  /// 工作经历
+  WORK_EXPERIENCE
+  /// 教育经历
+  EDUCATION
+  /// 技能
+  SKILLS
+  /// 项目经历
+  PROJECTS
+  /// 证书
+  CERTIFICATIONS
+  /// 语言
+  LANGUAGES
+  /// 自定义模块
+  CUSTOM
+}
+
+/// 用户表
 model User {
+  /// 用户ID
   id            String    @id
+  /// 用户名称
   name          String
+  /// 邮件
   email         String
+  /// 邮件是否验证
   emailVerified Boolean   @default(false)
+  /// 用户头像
   image         String?
+  /// 创建时间
   createdAt     DateTime  @default(now())
+  /// 更新时间
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  resumes       Resume[]
 
   @@unique([email])
   @@map("user")
 }
 
+/// 会话表
 model Session {
+  /// 会话ID
   id        String   @id
+  /// 过期时间
   expiresAt DateTime
+  /// 会话token
   token     String
+  /// 创建时间
   createdAt DateTime @default(now())
+  /// 更新时间
   updatedAt DateTime @updatedAt
+  /// IP地址
   ipAddress String?
+  /// 用户代理
   userAgent String?
+  /// 用户ID
   userId    String
+  /// 用户
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
@@ -44,34 +94,137 @@ model Session {
   @@map("session")
 }
 
+/// 账号表
 model Account {
+  /// ID
   id                    String    @id
+  /// 账号ID
   accountId             String
+  /// 提供商ID
   providerId            String
+  /// 用户ID
   userId                String
+  /// 用户
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// 访问令牌
   accessToken           String?
+  /// 刷新令牌
   refreshToken          String?
+  /// ID令牌
   idToken               String?
+  /// 访问令牌过期时间
   accessTokenExpiresAt  DateTime?
+  /// 刷新令牌过期时间
   refreshTokenExpiresAt DateTime?
+  /// 作用域
   scope                 String?
+  /// 密码
   password              String?
+  /// 创建时间
   createdAt             DateTime  @default(now())
+  /// 更新时间
   updatedAt             DateTime  @updatedAt
 
   @@index([userId])
   @@map("account")
 }
 
+/// 验证码表
 model Verification {
+  /// ID
   id         String   @id
+  /// 验证码标识符
   identifier String
+  /// 验证码值
   value      String
+  /// 过期时间
   expiresAt  DateTime
+  /// 创建时间
   createdAt  DateTime @default(now())
+  /// 更新时间
   updatedAt  DateTime @updatedAt
 
   @@index([identifier])
   @@map("verification")
+}
+
+/// 简历模板表
+model ResumeTemplate {
+  /// 模版KEY
+  key         String         @id @db.VarChar(100)
+  /// 模板名称
+  name        String         @db.VarChar(255)
+  /// 模板介绍
+  description String?
+  /// 模板状态
+  status      TemplateStatus @default(INACTIVE)
+  /// 排序顺序
+  sortOrder   Int            @default(0) @map("sort_order")
+  /// 创建时间
+  createdAt   DateTime       @default(now()) @map("created_at")
+  /// 更新时间
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  /// 简历列表
+  resumes     Resume[]
+
+  @@index([status, sortOrder])
+  @@map("resume_templates")
+}
+
+/// 简历表
+model Resume {
+  /// 简历ID
+  id          String          @id @default(uuid()) @db.Uuid
+  /// 用户ID
+  userId      String          @map("user_id")
+  /// 模板KEY
+  templateKey String          @map("template_key") @db.VarChar(100)
+  /// 简历标题
+  title       String          @default("未命名简历") @db.VarChar(255)
+  /// 主题配置
+  themeConfig Json            @default("{}") @map("theme_config") @db.JsonB
+  /// 简历版本
+  version     Int             @default(1)
+  /// 创建时间
+  createdAt   DateTime        @default(now()) @map("created_at")
+  /// 更新时间
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  /// 用户
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// 模板
+  template    ResumeTemplate  @relation(fields: [templateKey], references: [key], onDelete: Restrict)
+  /// 简历模块列表
+  sections    ResumeSection[]
+
+  @@index([userId, updatedAt])
+  @@index([templateKey])
+  @@map("resumes")
+}
+
+/// 简历模块表
+model ResumeSection {
+  /// 简历模块ID
+  id        String            @id @default(uuid()) @db.Uuid
+  /// 简历ID
+  resumeId  String            @map("resume_id") @db.Uuid
+  /// 简历模块类型
+  type      ResumeSectionType
+  /// 简历模块标题
+  title     String            @db.VarChar(255)
+  /// 排序顺序
+  sortOrder Int               @default(0) @map("sort_order")
+  /// 是否可见
+  visible   Boolean           @default(true)
+  /// 简历模块内容
+  content   Json              @db.JsonB
+  /// 创建时间
+  createdAt DateTime          @default(now()) @map("created_at")
+  /// 更新时间
+  updatedAt DateTime          @updatedAt @map("updated_at")
+  /// 简历
+  resume    Resume            @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId, sortOrder])
+  @@index([resumeId, type])
+  @@map("resume_sections")
 }

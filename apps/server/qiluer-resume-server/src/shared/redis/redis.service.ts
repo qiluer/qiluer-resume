@@ -37,6 +37,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       port: this.port,
       db: this.db,
       lazyConnect: true,
+      connectTimeout: 5000,
+      retryStrategy: (times) => Math.min(times * 500, 2000),
     });
   }
 
@@ -48,15 +50,23 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       const message = error instanceof Error ? error.message : String(error);
       // Redis 属于辅助能力，启动期不可达不应阻塞主链路
       this.logger.error(`❌ Redis connect failed: ${message}`);
+      this.client.disconnect();
+      throw error;
     }
   }
 
   async onModuleDestroy(): Promise<void> {
     try {
-      await this.client.quit();
+      if (this.client.status === 'ready') {
+        await this.client.quit();
+      } else {
+        this.client.disconnect();
+      }
+      this.logger.log('Redis disconnected');
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Redis quit failed: ${message}`);
+      this.logger.error(`Redis close failed: ${message}`);
+      this.client.disconnect();
     }
   }
 
