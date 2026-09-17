@@ -2,14 +2,14 @@ import { Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule as NestBetterAuthModule } from '@thallesp/nestjs-better-auth';
 import type { Request, Response } from 'express';
-import { EmailModule } from '@/shared/email/email.module';
-import { EmailService } from '@/shared/email/email.service';
-import { PrismaModule } from '@/shared/prisma/prisma.module';
-import { PrismaService } from '@/shared/prisma/prisma.service';
-import { createUserAuth } from './user-auth.factory';
-import { UserAuthController } from './user-auth.controller';
-import { UserAuthService } from './user-auth.service';
-import { RedisService } from '@/shared/redis';
+import { EmailModule } from '@/shared/email/email.module.js';
+import { EmailService } from '@/shared/email/email.service.js';
+import { PrismaModule } from '@/shared/prisma/prisma.module.js';
+import { PrismaService } from '@/shared/prisma/prisma.service.js';
+import { createUserAuth } from './user-auth.factory.js';
+import { UserAuthController } from './user-auth.controller.js';
+import { UserAuthService } from './user-auth.service.js';
+import { RedisService } from '@/shared/redis/index.js';
 
 const logger = new Logger('UserAuthModule');
 

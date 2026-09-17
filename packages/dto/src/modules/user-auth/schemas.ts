@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createRespondDataSchema } from '../respond/schemas';
+import { createRespondDataSchema } from '../respond/schemas.js';
 
 /** Better Auth 邮箱密码认证所使用的密码规则。 */
 export const userAuthPasswordSchema = z.string().min(8, '密码至少需要 8 位').max(128, '密码最多允许 128 位').meta({ description: '用户密码' });

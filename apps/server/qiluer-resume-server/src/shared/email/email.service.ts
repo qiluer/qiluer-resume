@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createTransport, Transporter } from 'nodemailer';
 import { ErrorCodeEnum } from '@qiluer-resume/dto';
-import { BusinessException } from '@/common/errors/business.exception';
+import { BusinessException } from '@/common/errors/business.exception.js';
 
 /**
  * 邮件发送参数

@@ -1,3 +1,3 @@
-export * from './schemas';
-export * from './modules/error';
-export * from './modules/user-auth';
+export * from './schemas/index.js';
+export * from './modules/error/index.js';
+export * from './modules/user-auth/index.js';

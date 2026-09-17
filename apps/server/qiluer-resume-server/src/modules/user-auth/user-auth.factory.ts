@@ -3,7 +3,7 @@ import { redisStorage } from '@better-auth/redis-storage';
 import { betterAuth } from 'better-auth';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
 import type { PrismaClient } from '@qiluer-resume/database';
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 
 const DAY_IN_SECONDS = 60 * 60 * 24;
 

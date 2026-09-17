@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { ErrorCodeEnum } from '@qiluer-resume/dto';
-import { ERROR_CODE_MESSAGE_MAP } from '@/common/enums/error-code-message';
+import { ERROR_CODE_MESSAGE_MAP } from '@/common/enums/error-code-message.js';
 
 /**
  * 业务异常

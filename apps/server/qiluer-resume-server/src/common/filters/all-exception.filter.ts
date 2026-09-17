@@ -2,8 +2,8 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logge
 import { Response } from 'express';
 import type { RespondDataType } from '@qiluer-resume/dto/schemas/respond';
 import { ErrorCodeEnum } from '@qiluer-resume/dto';
-import { BusinessException } from '@/common/errors/business.exception';
-import { ERROR_CODE_MESSAGE_MAP } from '../enums/error-code-message';
+import { BusinessException } from '@/common/errors/business.exception.js';
+import { ERROR_CODE_MESSAGE_MAP } from '../enums/error-code-message.js';
 
 /**
  * 全局异常过滤器
@@ -27,7 +27,7 @@ export class AllExceptionFilter implements ExceptionFilter {
       customCode = res.customCode;
       message = res.message;
     } else if (exception instanceof HttpException) {
-      // NestJS 内置 HttpException（NotFoundException / ZodValidationPipe 等）
+      // NestJS 内置 HttpException（NotFoundException / StandardSchemaValidationPipe 等）
       const res = exception.getResponse() as string | { message: string | string[] };
       const raw = typeof res === 'string' ? res : res?.message;
       message = Array.isArray(raw) ? raw.join(',') : (raw ?? exception.message);

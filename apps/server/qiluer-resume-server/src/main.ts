@@ -1,7 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '@/app.module';
-import { cleanupOpenApiDoc } from 'nestjs-zod';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from '@/app.module.js';
+import { DocumentBuilder, SwaggerModule, type SwaggerDocumentOptions } from '@nestjs/swagger';
+import { createSchema } from 'zod-openapi';
+
+function isZodSchema(schema: unknown): boolean {
+  return !!schema && typeof schema === 'object' && (schema as { '~standard'?: { vendor?: string } })['~standard']?.vendor === 'zod';
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
@@ -20,8 +24,21 @@ async function bootstrap() {
     .addCookieAuth('better-auth.session_token', undefined, 'user-session')
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, cleanupOpenApiDoc(document));
+  const documentOptions: SwaggerDocumentOptions = {
+    standardSchemaConverter: (schema, { schemaType }) => {
+      if (!isZodSchema(schema)) return undefined;
+
+      const converted = createSchema(schema as never, {
+        io: schemaType,
+        openapiVersion: '3.0.0',
+      });
+
+      return { schema: converted.schema, components: converted.components };
+    },
+  };
+
+  const document = SwaggerModule.createDocument(app, config, documentOptions);
+  SwaggerModule.setup('api-docs', app, document);
 
   await app.listen(process.env.PORT ?? 3000);
 }

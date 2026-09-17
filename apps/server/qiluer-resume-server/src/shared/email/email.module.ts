@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { EmailService } from '@/shared/email/email.service';
+import { EmailService } from '@/shared/email/email.service.js';
 
 /**
  * 邮件模块

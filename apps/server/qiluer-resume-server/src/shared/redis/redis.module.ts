@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { RedisService } from '@/shared/redis/redis.service';
+import { RedisService } from '@/shared/redis/redis.service.js';
 
 /**
  * Redis 模块

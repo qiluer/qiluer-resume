@@ -17,8 +17,8 @@ import {
   type UserAuthUserType,
   type VerifyEmailUserAuthQueryType,
 } from '@qiluer-resume/dto';
-import { BusinessException } from '@/common/errors/business.exception';
-import type { UserAuth } from './user-auth.factory';
+import { BusinessException } from '@/common/errors/business.exception.js';
+import type { UserAuth } from './user-auth.factory.js';
 
 /** Better Auth API 调用后需要返回给 Controller 的业务数据与响应头。 */
 export interface UserAuthServiceResult<T> {

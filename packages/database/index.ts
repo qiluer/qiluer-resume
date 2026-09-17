@@ -1,8 +1,8 @@
-export * from './generated/prisma/client';
+export * from './generated/prisma/client.js';
 import { Pool } from 'pg';
 
 import { PrismaPg } from '@prisma/adapter-pg';
-import type { Prisma } from './generated/prisma/client';
+import type { Prisma } from './generated/prisma/client.js';
 /**
  * Prisma 客户端选项
  * @param adapter Prisma 数据库适配器实例

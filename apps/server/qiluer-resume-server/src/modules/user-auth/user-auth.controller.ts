@@ -3,17 +3,29 @@ import { ApiCookieAuth, ApiFoundResponse, ApiOkResponse, ApiOperation, ApiParam,
 import { AllowAnonymous, OptionalAuth } from '@thallesp/nestjs-better-auth';
 import type { Request, Response } from 'express';
 import {
-  ForgotPasswordUserAuthDto,
-  LoginUserAuthDto,
-  RegisterUserAuthDto,
-  ResetPasswordCallbackUserAuthParamsDto,
-  ResetPasswordUserAuthDto,
-  SendVerificationEmailUserAuthDto,
-  VerifyEmailUserAuthQueryDto,
-} from '@qiluer-resume/dto/dtos/user-auth';
-import { LoginUserAuthVO, RegisterUserAuthVO, SessionUserAuthVO, UserAuthActionVO } from '@qiluer-resume/dto/vos/user-auth';
-import { type UserAuthActionType, type UserAuthSessionType, type UserAuthUserType } from '@qiluer-resume/dto/schemas/user-auth';
-import { UserAuthService } from './user-auth.service';
+  forgotPasswordUserAuthSchema,
+  loginUserAuthResponseSchema,
+  loginUserAuthSchema,
+  registerUserAuthResponseSchema,
+  registerUserAuthSchema,
+  resetPasswordCallbackUserAuthParamsSchema,
+  resetPasswordUserAuthSchema,
+  sendVerificationEmailUserAuthSchema,
+  sessionUserAuthResponseSchema,
+  userAuthActionResponseSchema,
+  verifyEmailUserAuthQuerySchema,
+  type ForgotPasswordUserAuthType,
+  type LoginUserAuthType,
+  type RegisterUserAuthType,
+  type ResetPasswordCallbackUserAuthParamsType,
+  type ResetPasswordUserAuthType,
+  type SendVerificationEmailUserAuthType,
+  type UserAuthActionType,
+  type UserAuthSessionType,
+  type UserAuthUserType,
+  type VerifyEmailUserAuthQueryType,
+} from '@qiluer-resume/dto/schemas/user-auth';
+import { UserAuthService } from './user-auth.service.js';
 
 /** 把 Better Auth 产生的 Set-Cookie 原样写入 NestJS 响应。 */
 function forwardSetCookie(headers: Headers, response: Response): void {
@@ -36,10 +48,10 @@ export class UserAuthController {
 
   @AllowAnonymous()
   @ApiOperation({ summary: 'C端用户注册' })
-  @ApiOkResponse({ type: RegisterUserAuthVO })
+  @ApiOkResponse({ standardSchema: registerUserAuthResponseSchema })
   @Post('register')
   async register(
-    @Body() body: RegisterUserAuthDto,
+    @Body({ schema: registerUserAuthSchema }) body: RegisterUserAuthType,
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<UserAuthUserType> {
@@ -50,9 +62,13 @@ export class UserAuthController {
 
   @AllowAnonymous()
   @ApiOperation({ summary: 'C端用户登录' })
-  @ApiOkResponse({ type: LoginUserAuthVO })
+  @ApiOkResponse({ standardSchema: loginUserAuthResponseSchema })
   @Post('login')
-  async login(@Body() body: LoginUserAuthDto, @Req() request: Request, @Res({ passthrough: true }) response: Response): Promise<UserAuthUserType> {
+  async login(
+    @Body({ schema: loginUserAuthSchema }) body: LoginUserAuthType,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<UserAuthUserType> {
     const result = await this.userAuthService.login(body, request.headers);
     forwardSetCookie(result.headers, response);
     return result.data;
@@ -60,7 +76,7 @@ export class UserAuthController {
 
   @ApiCookieAuth('user-session')
   @ApiOperation({ summary: 'C端用户退出登录' })
-  @ApiOkResponse({ type: UserAuthActionVO })
+  @ApiOkResponse({ standardSchema: userAuthActionResponseSchema })
   @Post('logout')
   async logout(@Req() request: Request, @Res({ passthrough: true }) response: Response): Promise<UserAuthActionType> {
     const result = await this.userAuthService.logout(request.headers);
@@ -71,7 +87,7 @@ export class UserAuthController {
   @OptionalAuth()
   @ApiCookieAuth('user-session')
   @ApiOperation({ summary: '查询当前普通用户 Session，游客返回 null' })
-  @ApiOkResponse({ type: SessionUserAuthVO })
+  @ApiOkResponse({ standardSchema: sessionUserAuthResponseSchema })
   @Get('session')
   async getSession(
     @Req() request: Request,
@@ -84,10 +100,10 @@ export class UserAuthController {
 
   @AllowAnonymous()
   @ApiOperation({ summary: 'C端用户重新发送邮箱验证邮件' })
-  @ApiOkResponse({ type: UserAuthActionVO })
+  @ApiOkResponse({ standardSchema: userAuthActionResponseSchema })
   @Post('send-verification-email')
   async sendVerificationEmail(
-    @Body() body: SendVerificationEmailUserAuthDto,
+    @Body({ schema: sendVerificationEmailUserAuthSchema }) body: SendVerificationEmailUserAuthType,
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<UserAuthActionType> {
@@ -100,17 +116,21 @@ export class UserAuthController {
   @ApiOperation({ summary: 'C端用户验证邮箱', description: '验证后重定向到可信前端地址' })
   @ApiFoundResponse({ description: '验证完成，或携带错误参数重定向到服务端配置的前端回调页' })
   @Get('verify-email')
-  async verifyEmail(@Query() query: VerifyEmailUserAuthQueryDto, @Req() request: Request, @Res() response: Response): Promise<void> {
+  async verifyEmail(
+    @Query({ schema: verifyEmailUserAuthQuerySchema }) query: VerifyEmailUserAuthQueryType,
+    @Req() request: Request,
+    @Res() response: Response,
+  ): Promise<void> {
     const upstream = await this.userAuthService.verifyEmail(query, request.headers);
     forwardRedirect(upstream, response);
   }
 
   @AllowAnonymous()
   @ApiOperation({ summary: 'C端用户忘记密码', description: '发送重置密码邮件后重定向到可信前端地址' })
-  @ApiOkResponse({ type: UserAuthActionVO })
+  @ApiOkResponse({ standardSchema: userAuthActionResponseSchema })
   @Post('forgot-password')
   async forgotPassword(
-    @Body() body: ForgotPasswordUserAuthDto,
+    @Body({ schema: forgotPasswordUserAuthSchema }) body: ForgotPasswordUserAuthType,
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<UserAuthActionType> {
@@ -125,7 +145,7 @@ export class UserAuthController {
   @ApiFoundResponse({ description: '令牌有效时附加 token，失效时附加 error，并重定向到服务端配置的前端回调页' })
   @Get('reset-password/:token')
   async resetPasswordCallback(
-    @Param() params: ResetPasswordCallbackUserAuthParamsDto,
+    @Param({ schema: resetPasswordCallbackUserAuthParamsSchema }) params: ResetPasswordCallbackUserAuthParamsType,
     @Req() request: Request,
     @Res() response: Response,
   ): Promise<void> {
@@ -135,10 +155,10 @@ export class UserAuthController {
 
   @AllowAnonymous()
   @ApiOperation({ summary: 'C端用户重置密码' })
-  @ApiOkResponse({ type: UserAuthActionVO })
+  @ApiOkResponse({ standardSchema: userAuthActionResponseSchema })
   @Post('reset-password')
   async resetPassword(
-    @Body() body: ResetPasswordUserAuthDto,
+    @Body({ schema: resetPasswordUserAuthSchema }) body: ResetPasswordUserAuthType,
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<UserAuthActionType> {

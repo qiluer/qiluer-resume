@@ -1,17 +1,16 @@
-import { Module } from '@nestjs/common';
+import { Module, StandardSchemaValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { AuthGuard } from '@thallesp/nestjs-better-auth';
-import { ZodValidationPipe } from 'nestjs-zod';
 import * as path from 'path';
-import { AppController } from '@/app.controller';
-import { AppService } from '@/app.service';
-import { AllExceptionFilter } from '@/common/filters/all-exception.filter';
-import { FormatResponseInterceptor } from '@/common/interceptors/format-response.interceptor';
-import { PrismaModule } from '@/shared/prisma/prisma.module';
-import { EmailModule } from '@/shared/email/email.module';
-import { RedisModule } from '@/shared/redis/redis.module';
-import { UserAuthModule } from '@/modules/user-auth/user-auth.module';
+import { AppController } from '@/app.controller.js';
+import { AppService } from '@/app.service.js';
+import { AllExceptionFilter } from '@/common/filters/all-exception.filter.js';
+import { FormatResponseInterceptor } from '@/common/interceptors/format-response.interceptor.js';
+import { PrismaModule } from '@/shared/prisma/prisma.module.js';
+import { EmailModule } from '@/shared/email/email.module.js';
+import { RedisModule } from '@/shared/redis/redis.module.js';
+import { UserAuthModule } from '@/modules/user-auth/user-auth.module.js';
 
 @Module({
   imports: [
@@ -33,7 +32,7 @@ import { UserAuthModule } from '@/modules/user-auth/user-auth.module';
     },
     {
       provide: APP_PIPE,
-      useClass: ZodValidationPipe,
+      useClass: StandardSchemaValidationPipe,
     },
     {
       provide: APP_INTERCEPTOR,

@@ -1,4 +1,2 @@
-/** 普通用户认证共享 Schema、DTO 与 VO。 */
-export * from './schemas';
-export * from './dtos';
-export * from './vos';
+/** 普通用户认证共享 Schema 与推导类型。 */
+export * from './schemas.js';

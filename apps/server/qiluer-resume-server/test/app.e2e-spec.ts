@@ -1,13 +1,13 @@
-import { Controller, Get, INestApplication, UseGuards } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
-import { PrismaService } from '@/shared/prisma/prisma.service';
-import { EmailService, SendMailOptions } from '@/shared/email/email.service';
-import { RedisService } from '@/shared/redis/redis.service';
+import { Controller, Get, type INestApplication, UseGuards } from '@nestjs/common';
+import { Test, type TestingModule } from '@nestjs/testing';
+import { DocumentBuilder, type OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
+import { PrismaService } from '@/shared/prisma/prisma.service.js';
+import { EmailService, type SendMailOptions } from '@/shared/email/email.service.js';
+import { RedisService } from '@/shared/redis/redis.service.js';
 import { AuthGuard } from '@thallesp/nestjs-better-auth';
 import request from 'supertest';
-import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+import type { App } from 'supertest/types';
+import { AppModule } from './../src/app.module.js';
 
 @Controller('protected-test')
 @UseGuards(AuthGuard)
